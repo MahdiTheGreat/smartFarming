@@ -54,7 +54,7 @@ Keypad kpd = Keypad( makeKeymap(keys), rowPins, colPins, ROWS, COLS ); //  Creat
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
  
 void setup() {
-  action="";
+  action='';
   for (int i = 0; i < farmRows; i++){
     myServos[i].attach(int(servoOutputs[i]));
     myServos[i].write(0);
@@ -274,9 +274,14 @@ void CalculateResult()
   if(digitalRead(fireAlarmInput)==HIGH){
     for (int i = 0; i < farmRows; i++){
       servoAngles[i]=180;
+      servoLock[i]=true;
     }
     digitalWrite(buzzerOutput,HIGH);
+    servoWrite();
     delay(buzzerTime);
+     for (int i = 0; i < farmRows; i++){
+      servoAngles[i]=0;
+    }
     digitalWrite(buzzerOutput,LOW);
   }
   else{
@@ -285,7 +290,7 @@ void CalculateResult()
     int temp=analogRead(moistureInputs[i]);
     mySerial.println("recieved voltage is");
     mySerial.println(temp);
-    temp=map(temp,0,1023,0,180);
+    temp=map(temp,0,1023,180,0);
     mySerial.println("angle is");
     mySerial.println(temp);
     servoAngles[i]=temp;
@@ -305,14 +310,16 @@ void CalculateResult()
     Num1=Num2=Number=0;
     result=false;
   }
-  
+  servoWrite();
+}
+
+void servoWrite(){
   for (int i = 0; i < farmRows; i++){
       int temp=0;
       temp=map(servoAngles[i],0,180,1000,2000);
       myServos[i].writeMicroseconds(temp);
     }
 }
-
 void DisplayResult()
 {
      // set the cursor to column 0, line 1
